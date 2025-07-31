@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QLineEdit, QPushButton, QSplitter, QTextEdit
+from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout,QWidget, QLineEdit, QPushButton, QSplitter, QTextEdit
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtCore import Qt, QUrl
 from core.browser_controller import BrowserController
@@ -17,13 +17,23 @@ class MainWindow(QMainWindow):
 
         self.controller = BrowserController()
 
+        # URL関連
         # URL入力バーの追加
         self.url_bar = QLineEdit()
-
         # URL入力バーのボタン
         self.go_button = QPushButton("Go")
         self.go_button.clicked.connect(self.load_url)
 
+        # 戻る・進む・リロードボタン
+        self.back_button = QPushButton("Back")
+        self.back_button.clicked.connect(self.go_back)
+        self.forward_button = QPushButton("Forward")
+        self.forward_button.clicked.connect(self.go_forward)
+        self.reload_button = QPushButton("Reload")
+        self.reload_button.clicked.connect(self.reload_page)
+
+        
+        
         # WEBエンジンビューの追加
         self.browser_view = QWebEngineView()
         self.browser_view.setUrl(QUrl("https://www.google.com"))
@@ -32,17 +42,40 @@ class MainWindow(QMainWindow):
         self.splitter.addWidget(self.browser_view)
         self.splitter.setSizes([800, 400])
 
+        #リボンのレイアウト
+        url_bar_layout = QHBoxLayout()
+        url_bar_layout.addWidget(self.url_bar)
+        url_bar_layout.addWidget(self.go_button)
+        
+        mainribbon_layout = QHBoxLayout()
+        mainribbon_layout.addWidget(self.back_button)
+        mainribbon_layout.addWidget(self.reload_button)
+        mainribbon_layout.addWidget(self.forward_button)
+        mainribbon_layout.addLayout(url_bar_layout)
+        
+        ribbon_layout = QVBoxLayout()
+        ribbon_layout.addLayout(mainribbon_layout)
         
         # 全体レイアウト
         main_layout = QVBoxLayout()
-        main_layout.addWidget(self.url_bar)
-        main_layout.addWidget(self.go_button)
+        main_layout.addLayout(ribbon_layout)
         main_layout.addWidget(self.splitter)
 
         container = QWidget()
         container.setLayout(main_layout)
         self.setCentralWidget(container)
 
+
+    # 各種の操作メソッド
     def load_url(self):
         url = self.url_bar.text().strip()
         self.controller.load_url(self.browser_view, url)
+
+    def reload_page(self):
+        self.controller.reload_page(self.browser_view)
+
+    def go_back(self):
+        self.controller.go_back(self.browser_view)
+    
+    def go_forward(self):
+        self.controller.go_forward(self.browser_view)
