@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QLineEdit, QPushButton, QSplitter, QTextEdit
 from PyQt5.QtWebEngineWidgets import QWebEngineView
-from PyQt5.QtCore import Qt, QUrl# メインウィンドウとUI部品のレイアウト
+from PyQt5.QtCore import Qt, QUrl
+from core.browser_controller import BrowserController
 """
 メインウィンドウのUI設計とレイアウト管理
 """
@@ -10,15 +11,18 @@ class MainWindow(QMainWindow):
         # メインウィンドウの初期化
         self.setWindowTitle("LLM Summary Browser")
         self.setGeometry(100, 100, 1200, 800)
-        
+
         # アイコンの設定(未定)
         # self.setWindowIcon(QIcon("icon.png"))
+
+        self.controller = BrowserController()
 
         # URL入力バーの追加
         self.url_bar = QLineEdit()
 
         # URL入力バーのボタン
         self.go_button = QPushButton("Go")
+        self.go_button.clicked.connect(self.load_url)
 
         # WEBエンジンビューの追加
         self.browser_view = QWebEngineView()
@@ -38,3 +42,7 @@ class MainWindow(QMainWindow):
         container = QWidget()
         container.setLayout(main_layout)
         self.setCentralWidget(container)
+
+    def load_url(self):
+        url = self.url_bar.text().strip()
+        self.controller.load_url(self.browser_view, url)
