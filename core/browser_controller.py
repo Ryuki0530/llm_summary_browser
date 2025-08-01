@@ -1,5 +1,5 @@
 from PyQt5.QtCore import QUrl
-from PyQt5.QtWebEngineWidgets import QWebEngineView
+from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 
 class BrowserController:
     def load_url(self, browser: QWebEngineView, url: str):
@@ -18,3 +18,8 @@ class BrowserController:
         if browser.history().canGoForward():
             browser.forward()
         
+    def create_browser(self, url="https://www.google.com"):
+            browser = QWebEngineView()
+            browser.setUrl(QUrl(url))
+            browser.page().setLinkDelegationPolicy(QWebEnginePage.DelegateAllLinks)
+            return browser
