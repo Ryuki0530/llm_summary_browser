@@ -1,5 +1,5 @@
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
-from PyQt5.QtWidgets import QMenu
+from PyQt5.QtWidgets import QMenu,QSplitter,QTextEdit
 from PyQt5.QtCore import QUrl, Qt
 
 class BrowserController:
@@ -20,17 +20,24 @@ class BrowserController:
         if browser and browser.history().canGoForward():
             browser.forward()
 
-    def add_new_tab(self, tab_widget, url, label):
+    def add_new_tab(self, tab_widget, url: str, label: str):
+        splitter = QSplitter(Qt.Horizontal)
+
         browser = QWebEngineView()
         browser.setUrl(QUrl(url))
-        browser.titleChanged.connect(lambda title, browser=browser: self.update_tab_title(tab_widget, browser, title))
-        browser.page().createWindow = lambda _type: self.handle_new_window(tab_widget)
 
-        browser.setContextMenuPolicy(Qt.CustomContextMenu)
-        browser.customContextMenuRequested.connect(lambda pos, browser=browser: self.show_context_menu(tab_widget, browser, pos))
+        summary_panel = QTextEdit()
+        summary_panel.setReadOnly(True)
+        summary_panel.setText("SUMMARY SAMPLE\nこれはサンプルです")
 
-        index = tab_widget.addTab(browser, label)
+        splitter.addWidget(browser)
+        splitter.addWidget(summary_panel)
+        splitter.setStretchFactor(0, 3)
+        splitter.setStretchFactor(1, 1)
+
+        index = tab_widget.addTab(splitter, label)
         tab_widget.setCurrentIndex(index)
+
 
     def handle_new_window(self, tab_widget):
         new_browser = QWebEngineView()

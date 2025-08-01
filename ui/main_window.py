@@ -67,23 +67,41 @@ class MainWindow(QMainWindow):
     def tab_changed(self, index):
         current_browser = self.current_browser()
         if current_browser:
-            self.url_bar.setText(current_browser.url().toString())
+            browser = current_browser.findChild(QWebEngineView)
+            if browser:
+                self.url_bar.setText(browser.url().toString())
 
     def current_browser(self):
         return self.tab_widget.currentWidget()
 
     def load_url(self):
-        url = self.url_bar.text().strip()
-        self.controller.load_url(self.current_browser(), url)
+        current = self.current_browser()
+        if current:
+            browser = current.findChild(QWebEngineView)
+            if browser:
+                url = self.url_bar.text().strip()
+                self.controller.load_url(browser, url)
 
     def reload_page(self):
-        self.controller.reload_page(self.current_browser())
+        current = self.current_browser()
+        if current:
+            browser = current.findChild(QWebEngineView)
+            if browser:
+                self.controller.reload_page(browser)
 
     def go_back(self):
-        self.controller.go_back(self.current_browser())
+        current = self.current_browser()
+        if current:
+            browser = current.findChild(QWebEngineView)
+            if browser:
+                self.controller.go_back(browser)
 
     def go_forward(self):
-        self.controller.go_forward(self.current_browser())
+        current = self.current_browser()
+        if current:
+            browser = current.findChild(QWebEngineView)
+            if browser:
+                self.controller.go_forward(browser)
 
     def eventFilter(self, source, event):
         if event.type() == QEvent.KeyPress:
