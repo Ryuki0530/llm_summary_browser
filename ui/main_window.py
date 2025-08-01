@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QLineEdit, QPushButton, QSplitter, QTextEdit, QTabWidget
+from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QLineEdit, QPushButton, QSplitter, QTextEdit, QTabWidget, QMenu
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 from PyQt5.QtCore import Qt, QUrl, QEvent
 from PyQt5.QtGui import QKeySequence
@@ -26,15 +26,15 @@ class MainWindow(QMainWindow):
         self.reload_button.clicked.connect(self.reload_page)
 
         self.new_tab_button = QPushButton("New Tab")
-        self.new_tab_button.clicked.connect(lambda: self.add_new_tab("https://www.google.com", "New Tab"))
+        self.new_tab_button.clicked.connect(lambda: self.controller.add_new_tab(self.tab_widget, "https://www.google.com", "New Tab"))
 
         self.tab_widget = QTabWidget()
         self.tab_widget.setTabsClosable(True)
         self.tab_widget.tabCloseRequested.connect(self.close_tab)
         self.tab_widget.currentChanged.connect(self.tab_changed)
-        self.tab_widget.tabBarDoubleClicked.connect(lambda index: self.add_new_tab("https://www.google.com", "New Tab"))
+        self.tab_widget.tabBarDoubleClicked.connect(lambda index: self.controller.add_new_tab(self.tab_widget, "https://www.google.com", "New Tab"))
 
-        self.add_new_tab("https://www.google.com", "New Tab")
+        self.controller.add_new_tab(self.tab_widget, "https://www.google.com", "New Tab")
 
         url_bar_layout = QHBoxLayout()
         url_bar_layout.addWidget(self.url_bar)
@@ -59,27 +59,6 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(container)
 
         self.installEventFilter(self)
-
-    def add_new_tab(self, url, label):
-        browser = QWebEngineView()
-        browser.setUrl(QUrl(url))
-        browser.titleChanged.connect(lambda title, browser=browser: self.update_tab_title(browser, title))
-        browser.page().createWindow = self.handle_new_window
-        index = self.tab_widget.addTab(browser, label)
-        self.tab_widget.setCurrentIndex(index)
-
-    def handle_new_window(self, _type):
-        new_browser = QWebEngineView()
-        new_browser.titleChanged.connect(lambda title, browser=new_browser: self.update_tab_title(browser, title))
-        new_browser.page().createWindow = self.handle_new_window
-        index = self.tab_widget.addTab(new_browser, "New Tab")
-        self.tab_widget.setCurrentIndex(index)
-        return new_browser.page()
-
-    def update_tab_title(self, browser, title):
-        index = self.tab_widget.indexOf(browser)
-        if index != -1:
-            self.tab_widget.setTabText(index, title)
 
     def close_tab(self, index):
         if self.tab_widget.count() > 1:
@@ -118,8 +97,13 @@ class MainWindow(QMainWindow):
                 self.go_forward()
                 return True
             elif (event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_T):
-                self.add_new_tab("https://www.google.com", "New Tab")
+                self.controller.add_new_tab(self.tab_widget, "https://www.google.com", "New Tab")
                 return True
+            elif event.key() == Qt.Key_Return and event.modifiers() == Qt.ControlModifier:
+                if self.url_bar.hasFocus():
+                    url = self.url_bar.text().strip()
+                    self.controller.add_new_tab(self.tab_widget, url, "New Tab")
+                    return True
         elif event.type() == QEvent.MouseButtonPress:
             if event.button() == Qt.BackButton:
                 print("Back button pressed")
@@ -129,4 +113,6 @@ class MainWindow(QMainWindow):
                 print("Forward button pressed")
                 self.go_forward()
                 return True
+            elif event.button() == Qt.MiddleButton:
+                return False
         return super().eventFilter(source, event)
